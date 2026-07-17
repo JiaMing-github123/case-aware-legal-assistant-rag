@@ -113,6 +113,17 @@ Users should obtain the documents through their own authorized MMU VLib/LexisNex
 ```text
 Cases/Docx/
 ```
+### Keywords Used for Case Law Collection
+
+The case law documents were selected by searching the MMU VLib (LexisNexis) using keywords related to the Industrial Relations Act 1967 and common industrial relations disputes. The primary keywords included:
+
+- Industrial Relations Act 1967
+- Act 177
+- Unfair dismissal
+- Constructive dismissal
+- Industrial Court
+- Section 20
+
 ---
 
 ## Environment Variables
