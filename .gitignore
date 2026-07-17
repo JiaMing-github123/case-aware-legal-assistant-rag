@@ -1,7 +1,7 @@
-# 忽略环境变量文件
+# Ignore environment variable files
 .env
 
-# 忽略你的本地数据库和日志（可选，建议加上）
+# Ignore local database and log
 metrics.db
 __pycache__/
 *.pyc
