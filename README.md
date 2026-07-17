@@ -85,6 +85,34 @@ Project Folder
 └── README.md
 ```
 
+## Dataset
+
+This project uses the following legal documents as the knowledge base for the Retrieval-Augmented Generation (RAG) system.
+
+### Industrial Relations Act 1967 (Act 177)
+
+The Industrial Relations Act 1967 (Act 177) was obtained from the official e-Akta portal of the Ministry of Human Resources (MOHR).
+
+Source:
+https://eakta.mohr.gov.my/assets/pdf/akta_jheks/Akta%20Perhubungan%20Perusahaan%20Akta177.pdf
+
+Save the document as:
+
+```text
+data/act_177.pdf
+```
+
+### Case Law Documents
+
+The RAG knowledge base also includes **40 Industrial Court case law documents** obtained through the Multimedia University (MMU) Virtual Library (MMU VLib), which provides authorized institutional access to the LexisNexis database.
+
+These case law documents are used strictly for academic purposes. Due to licensing and copyright restrictions, they are **not included in this public repository**.
+
+Users should obtain the documents through their own authorized MMU VLib/LexisNexis access (or another legally authorized source) and place the `.docx` files in:
+
+```text
+Cases/Docx/
+```
 ---
 
 ## Environment Variables
