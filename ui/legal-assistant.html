@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Legal Assistant</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=Lora:ital,wght@0,400;1,400&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0f0e0c;
+      --parchment: #f5f0e8;
+      --cream: #faf7f2;
+      --gold: #b8913a;
+      --gold-light: #d4aa55;
+      --red: #8b1a1a;
+      --muted: #7a7060;
+      --border: #d4c9b0;
+      --sidebar-w: 280px;
+      --radius: 4px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: var(--cream);
+      color: var(--ink);
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--ink);
+      display: flex;
+      flex-direction: column;
+      border-right: 2px solid var(--gold);
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .logo {
+      padding: 28px 24px 20px;
+      border-bottom: 1px solid rgba(184, 145, 58, 0.3);
+    }
+
+    .logo-wordmark {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      color: var(--gold);
+      letter-spacing: 0.08em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--gold);
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .logo-sub {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-top: 3px;
+    }
+
+    .new-chat-btn {
+      margin: 16px;
+      padding: 10px 16px;
+      background: transparent;
+      border: 1px solid rgba(184, 145, 58, 0.4);
+      color: var(--gold-light);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: var(--radius);
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .new-chat-btn:hover {
+      background: rgba(184, 145, 58, 0.12);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .new-chat-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .sidebar-section-label {
+      padding: 16px 16px 6px;
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .history-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 8px 16px;
+    }
+
+    .history-list::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    .history-list::-webkit-scrollbar-thumb {
+      background: rgba(184, 145, 58, 0.3);
+    }
+
+    .history-item {
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-bottom: 2px;
+    }
+
+    .history-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .history-item.active {
+      background: rgba(184, 145, 58, 0.12);
+      border-left: 2px solid var(--gold);
+    }
+
+    .history-title {
+      font-family: 'Lora', serif;
+      font-size: 12px;
+      color: #c8c0b0;
+      line-height: 1.4;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .history-date {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .sidebar-footer {
+      padding: 16px;
+      border-top: 1px solid rgba(184, 145, 58, 0.2);
+    }
+
+    .doc-count {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .doc-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--gold);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0.4
+      }
+    }
+
+    /* ── MAIN ── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      background: var(--cream);
+      position: relative;
+    }
+
+    /* top bar */
+    .topbar {
+      padding: 16px 32px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--parchment);
+      flex-shrink: 0;
+    }
+
+    .topbar-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      color: var(--ink);
+    }
+
+    .topbar-meta {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      padding: 3px 10px;
+      border-radius: 2px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .badge-rag {
+      background: rgba(139, 26, 26, 0.1);
+      color: var(--red);
+      border: 1px solid rgba(139, 26, 26, 0.2);
+    }
+
+    .badge-docs {
+      background: rgba(184, 145, 58, 0.1);
+      color: var(--gold);
+      border: 1px solid rgba(184, 145, 58, 0.2);
+    }
+
+    .upload-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: var(--gold);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .upload-btn:hover {
+      background: var(--gold-light);
+    }
+
+    .upload-btn svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    /* chat area */
+    .chat-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px;
+      scroll-behavior: smooth;
+    }
+
+    .chat-area::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .chat-area::-webkit-scrollbar-thumb {
+      background: var(--border);
+    }
+
+    /* welcome */
+    .welcome {
+      max-width: 600px;
+      margin: 40px auto;
+      text-align: center;
+    }
+
+    .welcome-seal {
+      width: 64px;
+      height: 64px;
+      background: var(--ink);
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      margin: 0 auto 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gold);
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+    }
+
+    .welcome h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 400;
+      color: var(--ink);
+      margin-bottom: 12px;
+    }
+
+    .welcome p {
+      font-family: 'Lora', serif;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.8;
+      font-style: italic;
+      margin-bottom: 36px;
+    }
+
+    .suggestions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      text-align: left;
+    }
+
+    .suggestion-card {
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--parchment);
+    }
+
+    .suggestion-card:hover {
+      border-color: var(--gold);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .suggestion-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 5px;
+    }
+
+    .suggestion-text {
+      font-family: 'Lora', serif;
+      font-size: 13px;
+      color: var(--ink);
+      line-height: 1.5;
+    }
+
+    /* messages */
+    .message {
+      margin-bottom: 28px;
+      display: flex;
+      gap: 16px;
+      animation: fadein 0.3s ease;
+    }
+
+    @keyframes fadein {
+      from {
+        opacity: 0;
+        transform: translateY(8px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    .msg-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 2px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    .msg-avatar.user {
+      background: var(--ink);
+      color: var(--gold);
+    }
+
+    .msg-avatar.ai {
+      background: var(--gold);
+      color: white;
+    }
+
+    .msg-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .msg-name {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .msg-text {
+      font-family: 'Lora', serif;
+      font-size: 14px;
+      line-height: 1.85;
+      color: var(--ink);
+    }
+
+    .msg-text.user-text {
+      background: var(--parchment);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      display: inline-block;
+      max-width: 80%;
+    }
+
+    /* citations */
+    .citations {
+      margin-top: 16px;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+    }
+
+    .citations-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 8px;
+    }
+
+    .citation-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 12px;
+      background: var(--parchment);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--gold);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin-bottom: 6px;
+      cursor: pointer;
+      transition: border-left-color 0.2s;
+    }
+
+    .citation-item:hover {
+      border-left-color: var(--red);
+    }
+
+    .citation-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--gold);
+      min-width: 18px;
+      font-weight: 500;
+    }
+
+    .citation-content {
+      flex: 1;
+    }
+
+    .citation-doc {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .citation-excerpt {
+      font-family: 'Lora', serif;
+      font-size: 12px;
+      color: var(--ink);
+      font-style: italic;
+      line-height: 1.5;
+    }
+
+    /* confidence meter */
+    .confidence-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .confidence-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      white-space: nowrap;
+    }
+
+    .confidence-track {
+      flex: 1;
+      height: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .confidence-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--gold-light));
+      border-radius: 2px;
+      transition: width 1s ease;
+    }
+
+    .confidence-pct {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--gold);
+      min-width: 36px;
+      text-align: right;
+    }
+
+    /* disclaimer pill */
+    .disclaimer {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      padding: 5px 12px;
+      background: rgba(139, 26, 26, 0.06);
+      border: 1px solid rgba(139, 26, 26, 0.15);
+      border-radius: 20px;
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      color: var(--red);
+      letter-spacing: 0.05em;
+    }
+
+    .disclaimer svg {
+      width: 11px;
+      height: 11px;
+      flex-shrink: 0;
+    }
+
+    /* typing indicator */
+    .typing {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      padding: 4px 0;
+    }
+
+    .typing span {
+      width: 6px;
+      height: 6px;
+      background: var(--gold);
+      border-radius: 50%;
+      animation: bounce 1.2s infinite;
+    }
+
+    .typing span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes bounce {
+
+      0%,
+      60%,
+      100% {
+        transform: translateY(0)
+      }
+
+      30% {
+        transform: translateY(-6px)
+      }
+    }
+
+    /* input */
+    .input-area {
+      padding: 20px 32px 24px;
+      border-top: 1px solid var(--border);
+      background: var(--parchment);
+      flex-shrink: 0;
+    }
+
+    .input-wrapper {
+      max-width: 760px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .input-box {
+      width: 100%;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 52px 14px 16px;
+      font-family: 'Lora', serif;
+      font-size: 14px;
+      color: var(--ink);
+      resize: none;
+      outline: none;
+      transition: border-color 0.2s;
+      min-height: 52px;
+      max-height: 160px;
+      line-height: 1.6;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .input-box:focus {
+      border-color: var(--gold);
+    }
+
+    .input-box::placeholder {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .send-btn {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      width: 34px;
+      height: 34px;
+      background: var(--ink);
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      color: var(--gold);
+    }
+
+    .send-btn:hover {
+      background: var(--gold);
+      color: white;
+    }
+
+    .send-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .input-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+      padding: 0 2px;
+    }
+
+    .input-hint {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+
+    .mode-toggle {
+      display: flex;
+      gap: 6px;
+    }
+
+    .mode-btn {
+      padding: 3px 10px;
+      border-radius: 2px;
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      transition: all 0.15s;
+    }
+
+    .mode-btn.active {
+      background: var(--ink);
+      color: var(--gold);
+      border-color: var(--ink);
+    }
+
+    /* modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      width: 480px;
+      padding: 32px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+      animation: modalin 0.25s ease;
+    }
+
+    @keyframes modalin {
+      from {
+        opacity: 0;
+        transform: scale(0.96)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    .modal-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .modal-sub {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 24px;
+      letter-spacing: 0.05em;
+    }
+
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 40px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 20px;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.drag {
+      border-color: var(--gold);
+      background: rgba(184, 145, 58, 0.04);
+    }
+
+    .drop-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+
+    .drop-text {
+      font-family: 'Lora', serif;
+      font-size: 14px;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .drop-meta {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      margin-top: 6px;
+      letter-spacing: 0.08em;
+    }
+
+    .modal-close {
+      width: 100%;
+      padding: 10px;
+      background: var(--ink);
+      color: var(--gold);
+      border: none;
+      border-radius: var(--radius);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    /* doc panel */
+    .doc-panel {
+      width: 260px;
+      background: var(--parchment);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      transform: translateX(0);
+      transition: transform 0.3s;
+    }
+
+    .doc-panel.hidden {
+      transform: translateX(260px);
+      width: 0;
+      overflow: hidden;
+    }
+
+    .doc-panel-header {
+      padding: 20px 20px 14px;
+      border-bottom: 1px solid var(--border);
+      font-family: 'Playfair Display', serif;
+      font-size: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .doc-close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .doc-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+    }
+
+    .doc-item {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 8px;
+      background: white;
+      transition: border-color 0.2s;
+      cursor: pointer;
+    }
+
+    .doc-item:hover {
+      border-color: var(--gold);
+    }
+
+    .doc-item-name {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--ink);
+      font-weight: 500;
+      margin-bottom: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .doc-item-meta {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+    }
+
+    .doc-status {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-right: 4px;
+    }
+
+    .doc-status.indexed {
+      background: #4a9f5a;
+    }
+
+    .doc-status.processing {
+      background: var(--gold);
+      animation: pulse 1.5s infinite;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-wordmark">
+        <div class="logo-icon"></div>
+        Legal Assistant
+      </div>
+      <div class="logo-sub">Legal Research Assistant</div>
+    </div>
+
+    <!--  <button class="new-chat-btn" onclick="newChat()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 5v14M5 12h14" />
+      </svg>
+      New Research Session
+    </button>-->
+
+    <div class="sidebar-section-label">Recent Sessions</div>
+    <div class="history-list" id="historyList">
+      <div class="history-item active">
+        <div class="history-title">New Chat</div>
+        <div class="history-date">Today</div>
+      </div>
+       <!-- <div class="history-item">
+        <div class="history-title">Malaysian Personal Data Protection Act</div>
+        <div class="history-date">Yesterday</div>
+      </div>
+      <div class="history-item">
+        <div class="history-title">Intellectual property licensing clauses</div>
+        <div class="history-date">Mar 19</div>
+      </div>
+      <div class="history-item">
+        <div class="history-title">Land acquisition compensation framework</div>
+        <div class="history-date">Mar 17</div>
+      </div>
+      <div class="history-item">
+        <div class="history-title">Corporate insolvency — director duties</div>
+        <div class="history-date">Mar 12</div>
+      </div>-->
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="doc-count">
+        <div class="doc-dot"></div>
+         <!--<span>12 documents indexed · RAG active</span>-->
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-title">Legal Research Session</div>
+      <div class="topbar-meta">
+         <!--<span class="badge badge-rag">RAG Active</span>
+        <span class="badge badge-docs" id="docBadge">12 Docs</span>
+        <button class="upload-btn" onclick="openModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+          </svg>
+          Upload Documents
+        </button>-->
+      </div>
+    </header>
+
+    <div class="chat-area" id="chatArea">
+      <!-- WELCOME -->
+      <div class="welcome" id="welcome">
+        <div class="welcome-seal">⚖</div>
+        <h1>Legal Assistant</h1>
+        <p>Ask questions about Act 177 and receive cited answers grounded in indexed legal documents.</p>
+        <div class="suggestions">
+          <div class="suggestion-card" onclick="sendSuggestion(this)">
+            <div class="suggestion-label">Statutory Law (Act 177)</div>
+            <div class="suggestion-text">What is the procedure for representation on dismissal under Section 20?</div>
+          </div>
+          <div class="suggestion-card" onclick="sendSuggestion(this)">
+            <div class="suggestion-label">Constructive Dismissal</div>
+            <div class="suggestion-text">My boss made my life miserable so I had to quit. What are my rights?</div>
+          </div>
+          <div class="suggestion-card" onclick="sendSuggestion(this)">
+            <div class="suggestion-label">Case Law Application</div>
+            <div class="suggestion-text">I was fired without a warning letter. Can I claim compensation?</div>
+          </div>
+          <div class="suggestion-card" onclick="sendSuggestion(this)">
+            <div class="suggestion-label">Pregnancy & Discrimination</div>
+            <div class="suggestion-text">I was dismissed because I am pregnant and afraid of Covid. Is this just cause?
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-area">
+      <div class="input-wrapper">
+        <textarea class="input-box" id="inputBox" placeholder="Ask a legal question…" rows="1"
+          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="send-btn" onclick="sendMessage()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" />
+          </svg>
+        </button>
+      </div>
+      <div class="input-footer">
+        <span class="input-hint">Press Enter to send · Shift+Enter for new line</span>
+        <div class="mode-toggle">
+          <!-- <button class="mode-btn active" onclick="setMode(this,'rag')">RAG Search</button>
+          <button class="mode-btn" onclick="setMode(this,'general')">General</button>-->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- DOC PANEL -->
+  <div class="doc-panel hidden" id="docPanel">
+    <div class="doc-panel-header">
+      Document Index
+      <button class="doc-close" onclick="toggleDocPanel()">×</button>
+    </div>
+    <div class="doc-list" id="docList">
+      <div class="doc-item">
+        <div class="doc-item-name">Companies_Act_2016.pdf</div>
+        <div class="doc-item-meta"><span class="doc-status indexed"></span>Indexed · 312 pages</div>
+      </div>
+      <div class="doc-item">
+        <div class="doc-item-name">PDPA_2010_Annotated.pdf</div>
+        <div class="doc-item-meta"><span class="doc-status indexed"></span>Indexed · 88 pages</div>
+      </div>
+      <div class="doc-item">
+        <div class="doc-item-name">Employment_Act_1955.pdf</div>
+        <div class="doc-item-meta"><span class="doc-status indexed"></span>Indexed · 154 pages</div>
+      </div>
+      <div class="doc-item">
+        <div class="doc-item-name">Limitation_Act_1953.pdf</div>
+        <div class="doc-item-meta"><span class="doc-status indexed"></span>Indexed · 42 pages</div>
+      </div>
+      <div class="doc-item">
+        <div class="doc-item-name">Contract_Act_1950.pdf</div>
+        <div class="doc-item-meta"><span class="doc-status indexed"></span>Indexed · 96 pages</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UPLOAD MODAL -->
+  <div class="modal-overlay" id="modal" onclick="closeModal(event)">
+    <div class="modal">
+      <div class="modal-title">Upload Legal Documents</div>
+      <div class="modal-sub">Documents will be chunked, embedded, and indexed for RAG retrieval.</div>
+      <div class="drop-zone" id="dropZone" ondragover="dragOver(event)" ondragleave="dragLeave(event)"
+        ondrop="dropFile(event)" onclick="document.getElementById('fileInput').click()">
+        <div class="drop-icon">📄</div>
+        <div class="drop-text">Drop PDF or DOCX files here, or click to browse</div>
+        <div class="drop-meta">PDF · DOCX · TXT — Max 50MB per file</div>
+      </div>
+      <input type="file" id="fileInput" multiple accept=".pdf,.docx,.txt" style="display:none"
+        onchange="handleFiles(this.files)">
+      <div id="uploadedFiles" style="margin-bottom:16px"></div>
+      <button class="modal-close" onclick="closeModalBtn()">Close</button>
+    </div>
+  </div>
+
+  <script>
+    
+    const RESPONSES = [
+      {
+        text: `Under the <strong>Employment Act 1955</strong>, an employee wrongfully dismissed may pursue several remedies. The Industrial Relations Act 1967 provides the primary mechanism, allowing the employee to file a representation to the Director General of Industrial Relations within <em>60 days</em> of dismissal.<br><br>Where the dismissal is found to be without just cause or excuse, the Industrial Court may award: (a) reinstatement to the former position, (b) back wages for the period of dismissal, or (c) compensation in lieu of reinstatement — typically calculated at one month's wages per year of service.<br><br>In addition, common law claims for wrongful termination may be pursued in the civil courts, particularly where contractual notice periods have been breached.`,
+        citations: [
+          { num: 1, doc: "Employment_Act_1955.pdf · §12, p.34", excerpt: "An employee may represent to the Director General that he has been dismissed without just cause or excuse." },
+          { num: 2, doc: "Industrial_Relations_Act_1967.pdf · §20(1)", excerpt: "Any workman… may make a representation in writing… to the Director General to be reinstated in his former employment." },
+          { num: 3, doc: "Contract_Act_1950.pdf · §76, p.88", excerpt: "A person who rightfully rescinds a contract is entitled to compensation for any damage which he has sustained." }
+        ],
+        confidence: 91
+      },
+      {
+        text: `The <strong>Personal Data Protection Act 2010 (PDPA)</strong> imposes several obligations on data processors operating in Malaysia.<br><br>Under the <em>seven Personal Data Protection Principles</em>, a data processor must: (1) only process data for the specified and lawful purpose for which it was collected, (2) obtain consent before processing sensitive personal data, (3) implement reasonable security measures to prevent unauthorised access, and (4) not retain personal data beyond what is necessary.<br><br>Notably, the PDPA applies to commercial transactions, and a data processor who breaches its provisions may be liable to a fine not exceeding RM 500,000 or imprisonment for a term not exceeding three years, or both.`,
+        citations: [
+          { num: 1, doc: "PDPA_2010_Annotated.pdf · Part II, p.12", excerpt: "A data user shall not process personal data about a data subject unless the data subject has given his consent to the processing." },
+          { num: 2, doc: "PDPA_2010_Annotated.pdf · §5, p.15", excerpt: "Personal data shall not be kept longer than is necessary for the fulfilment of the purpose." }
+        ],
+        confidence: 87
+      },
+      {
+        text: `The <strong>Limitation Act 1953</strong> governs the periods within which civil actions must be commenced in Malaysia. For claims in tort, the general limitation period is <em>six years</em> from the date on which the cause of action accrued, pursuant to Section 6(1)(a).<br><br>However, exceptions exist: for personal injury claims, the limitation period is reduced to three years. In cases of latent damage — where the damage was not discoverable at the time — the court may apply a discoverability test, and time runs from when the plaintiff knew or ought to have known of the damage.<br><br>Once the limitation period expires, the defendant acquires a procedural defence, and the court will ordinarily stay or dismiss the proceedings.`,
+        citations: [
+          { num: 1, doc: "Limitation_Act_1953.pdf · §6(1)(a), p.8", excerpt: "Actions founded on tort shall not be brought after the expiration of six years from the date on which the cause of action accrued." },
+          { num: 2, doc: "Limitation_Act_1953.pdf · §6(1)(b)", excerpt: "Actions for damages in respect of personal injuries shall not be brought after three years." }
+        ],
+        confidence: 94
+      },
+      {
+        text: `Under the <strong>Companies Act 2016</strong>, a director owes fiduciary duties to the company he serves. These are codified in Sections 213–217 of the Act and comprise:<br><br>(1) <em>Duty to act in good faith</em> — the director must act honestly and in the best interest of the company at all times; (2) <em>Duty of care, skill and diligence</em> — measured against a reasonable person with similar responsibilities; (3) <em>Duty to avoid conflicts of interest</em> — a director must not place himself in a position where personal interest conflicts with his duty to the company; and (4) <em>Duty not to make secret profits</em> — any profits made by reason of the directorship must be disclosed and accounted for.<br><br>Breach of these duties may render the director personally liable to the company for resulting loss.`,
+        citations: [
+          { num: 1, doc: "Companies_Act_2016.pdf · §213, p.142", excerpt: "A director of a company shall at all times exercise his powers in accordance with this Act, for a proper purpose and in good faith in the best interest of the company." },
+          { num: 2, doc: "Companies_Act_2016.pdf · §214(1)", excerpt: "A director of a company shall exercise reasonable care, skill and diligence with the knowledge, skill and experience which may reasonably be expected of a director." }
+        ],
+        confidence: 96
+      }
+    ];
+
+    let msgCount = 0;
+    let responseIdx = 0;
+    let isTyping = false;
+    let currentMode = 'rag';
+    let docCount = 12;
+
+    function autoResize(el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+    }
+
+    function handleKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    }
+
+    function setMode(btn, mode) {
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentMode = mode;
+    }
+
+    function sendSuggestion(card) {
+      const text = card.querySelector('.suggestion-text').textContent;
+      document.getElementById('inputBox').value = text;
+      sendMessage();
+    }
+
+    async function sendMessage() {
+  const box = document.getElementById('inputBox');
+  const text = box.value.trim();
+  if (!text || isTyping) return;
+  
+  box.value = '';
+  box.style.height = 'auto';
+
+  hideWelcome();
+  appendUserMessage(text);
+  showTyping();
+
+  try {
+    // 真正向你的 FastAPI 服务器发送请求
+    const response = await fetch('/api/ask', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'bypass-tunnel-reminder': 'true'
+      },
+      body: JSON.stringify({ question: text }) // 把用户输入的问题发给后端
+    });
+
+    const data = await response.json();
+    removeTyping();
+
+    if (data.status === 'success') {
+      // 构造适配你 UI 的对象
+      const respObj = {
+        text: data.answer,
+        // 如果你的后端还没有返回 citations，这里默认给个空数组以免报错
+        citations: data.citations || [], 
+        confidence: data.confidence || 95 // 可以在后端对接你的 Rerank score
+      };
+      appendAIMessage(respObj);
+    } else {
+      appendAIMessage({ 
+        text: "🚨 Error processing your request: " + (data.error || "Unknown error"), 
+        citations: [], 
+        confidence: 0 
+      });
+    }
+  } catch (error) {
+    removeTyping();
+    // 捕获网络错误（比如忘记开 Python 后端）
+    appendAIMessage({ 
+      text: "🚨 **Connection failed:** Unable to connect to the backend server. Please ensure your FastAPI (http://127.0.0.1:8000) is running and that CORS has been configured.", 
+      citations: [], 
+      confidence: 0 
+    });
+    console.error("API Call Failed:", error);
+  }
+}
+
+    function hideWelcome() {
+      const w = document.getElementById('welcome');
+      if (w) { w.style.opacity = '0'; w.style.transition = 'opacity 0.3s'; setTimeout(() => w.remove(), 300); }
+    }
+
+    function appendUserMessage(text) {
+      msgCount++;
+      const area = document.getElementById('chatArea');
+      const div = document.createElement('div');
+      div.className = 'message';
+      div.innerHTML = `
+    <div class="msg-avatar user">YOU</div>
+    <div class="msg-content">
+      <div class="msg-name">You</div>
+      <div class="msg-text user-text">${escHtml(text)}</div>
+    </div>`;
+      area.appendChild(div);
+      area.scrollTop = area.scrollHeight;
+    }
+
+    function showTyping() {
+      isTyping = true;
+      const area = document.getElementById('chatArea');
+      const div = document.createElement('div');
+      div.className = 'message'; div.id = 'typingMsg';
+      div.innerHTML = `
+    <div class="msg-avatar ai">AI</div>
+    <div class="msg-content">
+      <div class="msg-name">AI · Retrieving & Synthesising</div>
+      <div class="typing"><span></span><span></span><span></span></div>
+    </div>`;
+      area.appendChild(div);
+      area.scrollTop = area.scrollHeight;
+    }
+
+    function removeTyping() {
+      isTyping = false;
+      const t = document.getElementById('typingMsg');
+      if (t) t.remove();
+    }
+
+    function appendAIMessage(resp) {
+      const area = document.getElementById('chatArea');
+      const div = document.createElement('div');
+      div.className = 'message';
+
+      const cits = resp.citations.map(c => `
+    <div class="citation-item">
+      <div class="citation-num">[${c.num}]</div>
+      <div class="citation-content">
+        <div class="citation-doc">${c.doc}</div>
+        <div class="citation-excerpt">"${c.excerpt}"</div>
+      </div>
+    </div>`).join('');
+
+      div.innerHTML = `
+    <div class="msg-avatar ai">AI</div>
+    <div class="msg-content">
+      <div class="msg-name">AI · RAG Response</div>
+      <div class="msg-text">${resp.text}</div>
+      <div class="citations">
+        <div class="citations-label">Source Citations · ${resp.citations.length} passages retrieved</div>
+        ${cits}
+      </div>
+      <div class="disclaimer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        For informational purposes only — not legal advice. Consult a qualified lawyer.
+      </div>
+    </div>`;
+      area.appendChild(div);
+      area.scrollTop = area.scrollHeight;
+
+      // animate confidence bar
+      setTimeout(() => {
+        const bar = div.querySelector('.confidence-fill');
+        if (bar) bar.style.width = bar.dataset.pct + '%';
+      }, 100);
+    }
+
+    function newChat() {
+      const area = document.getElementById('chatArea');
+      area.innerHTML = '';
+      const w = document.createElement('div');
+      w.className = 'welcome'; w.id = 'welcome';
+      w.innerHTML = `<div class="welcome-seal">⚖</div>
+    <h1>Legal Intelligence, Grounded in Your Documents</h1>
+    <p>Ask any legal question. LexAI retrieves relevant passages from your indexed documents and synthesises an answer with full citations — so you always know the source.</p>
+    <div class="suggestions">
+      <div class="suggestion-card" onclick="sendSuggestion(this)"><div class="suggestion-label">Contract Law</div><div class="suggestion-text">What are the remedies available for a breach of employment contract?</div></div>
+      <div class="suggestion-card" onclick="sendSuggestion(this)"><div class="suggestion-label">Data Protection</div><div class="suggestion-text">Summarise the key obligations under the PDPA for data processors.</div></div>
+      <div class="suggestion-card" onclick="sendSuggestion(this)"><div class="suggestion-label">Litigation</div><div class="suggestion-text">What is the limitation period for tort claims in Malaysia?</div></div>
+      <div class="suggestion-card" onclick="sendSuggestion(this)"><div class="suggestion-label">Corporate</div><div class="suggestion-text">Explain the fiduciary duties of a company director under the Companies Act.</div></div>
+    </div>`;
+      area.appendChild(w);
+      responseIdx = 0;
+    }
+
+    function openModal() { document.getElementById('modal').classList.add('open'); }
+    function closeModal(e) { if (e.target === document.getElementById('modal')) closeModalBtn(); }
+    function closeModalBtn() { document.getElementById('modal').classList.remove('open'); }
+
+    function dragOver(e) { e.preventDefault(); document.getElementById('dropZone').classList.add('drag'); }
+    function dragLeave() { document.getElementById('dropZone').classList.remove('drag'); }
+    function dropFile(e) {
+      e.preventDefault();
+      document.getElementById('dropZone').classList.remove('drag');
+      handleFiles(e.dataTransfer.files);
+    }
+
+    function handleFiles(files) {
+      const cont = document.getElementById('uploadedFiles');
+      Array.from(files).forEach(f => {
+        docCount++;
+        document.getElementById('docBadge').textContent = docCount + ' Docs';
+        const d = document.createElement('div');
+        d.className = 'doc-item'; d.style.marginBottom = '6px';
+        d.innerHTML = `<div class="doc-item-name">${escHtml(f.name)}</div><div class="doc-item-meta"><span class="doc-status processing"></span>Processing…</div>`;
+        cont.appendChild(d);
+        // simulate indexing
+        setTimeout(() => { d.querySelector('.doc-status').className = 'doc-status indexed'; d.querySelector('.doc-item-meta').innerHTML = `<span class="doc-status indexed"></span>Indexed · ${Math.floor(f.size / 8000) || 1} pages`; }, 2500);
+
+        // also add to doc panel
+        const panel = document.getElementById('docList');
+        const pd = d.cloneNode(true);
+        panel.appendChild(pd);
+        setTimeout(() => { pd.querySelector('.doc-status').className = 'doc-status indexed'; pd.querySelector('.doc-item-meta').innerHTML = `<span class="doc-status indexed"></span>Indexed`; }, 2500);
+      });
+    }
+
+    function toggleDocPanel() {
+      document.getElementById('docPanel').classList.toggle('hidden');
+    }
+
+    function escHtml(t) { return t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  </script>
+</body>
+
+</html>
