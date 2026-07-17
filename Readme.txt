@@ -1,4 +1,4 @@
-# Readme.txt
+# CASE-AWARE LEGAL ASSISTANT USING RAG
 
 An AI-powered legal assistant designed to answer questions related to the Industrial Relations Act 1967 (Act 177). The system uses a Retrieval-Augmented Generation (RAG) architecture with FastAPI as the backend and an HTML frontend.
 
